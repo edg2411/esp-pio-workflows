@@ -3,7 +3,7 @@ name: PlatformIO CI
 on:
   push:
     tags:
-      - "v*"  # Runs only when pushing a version tag like "v1.0.0"
+      - "v*"  # Runs only when a tag like v1.0.0 is pushed
 
 jobs:
   build:
@@ -11,38 +11,45 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Cache PlatformIO
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
-
-      - name: Install PlatformIO Core
+      - name: Install PlatformIO
         run: pip install --upgrade platformio
 
-      - name: Build PlatformIO Project
+      - name: Build Firmware
         run: pio run
 
-      - name: Extract Version
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Store Firmware as Artifact
+      - name: Upload Firmware Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ env.VERSION }}.bin
+          name: firmware
           path: .pio/build/esp32doit-devkit-v1/firmware.bin
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for creating releases
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Firmware Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: firmware
+
+      - name: Verify Firmware File
+        run: ls -lah firmware/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
-          body: "Automated release of firmware version ${{ env.VERSION }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
-          files: .pio/build/esp32doit-devkit-v1/firmware.bin
+          files: firmware/firmware.bin
