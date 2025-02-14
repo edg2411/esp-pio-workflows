@@ -32,7 +32,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Store Firmware as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firmware-${{ env.VERSION }}.bin
           path: .pio/build/esp32doit-devkit-v1/firmware.bin
