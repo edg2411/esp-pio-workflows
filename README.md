@@ -21,6 +21,17 @@ The workflow file, located in the `.github/workflows` directory, automates the f
 2. Customize the [PlatformIO configuration](// ...existing code...) as needed.
 3. Trigger a build by pushing changes to the repository.
 
+## Tagging and Triggering GitHub Actions
+
+To trigger the PlatformIO workflow on a new version tag, use the following commands in your terminal:
+
+```sh
+git tag v1.0.3
+git push origin v1.0.3
+```
+
+This will create and push the tag `v1.0.3` to your remote repository, triggering the workflow for that tag.
+
 ## Artifacts
 
 After a successful build, the firmware binaries for ESP32 are available as downloadable artifacts in the GitHub Actions run details.
